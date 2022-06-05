@@ -8,21 +8,20 @@ const jwt = require('jsonwebtoken');
  * @access  Public
  */
 exports.addUser = async (req, res) => {
-  console.log('called');
   const { name, email, image } = req.body;
-  let userInfo = {};
 
-  const userAlreadyExists = await User.findOne({ email });
+  const user = await User.findOneAndUpdate(
+    { email },
+    { email, name, image },
+    { upsert: true, new: true }
+  );
 
-  if (!userAlreadyExists) {
-    const user = await User.create({ name, email, image });
-
-    userInfo = {
-      email: user.email,
-      name: user.name,
-      role: user.role,
-    };
-  }
+  const userInfo = {
+    email: user.email,
+    name: user.name,
+    role: user.role,
+    image: user.image,
+  };
 
   const token = jwt.sign({ email }, process.env.JWT_SECRET, {
     expiresIn: process.env.JWT_LIFESPAN,
