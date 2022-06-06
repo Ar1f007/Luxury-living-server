@@ -32,3 +32,29 @@ exports.addUser = async (req, res) => {
     .status(StatusCodes.CREATED)
     .json({ userInfo });
 };
+
+exports.login = async (req, res) => {
+  const { email } = req.body;
+
+  const user = await User.findOne({ email });
+
+  const userInfo = {
+    name: user.name,
+    email: user.email,
+    image: user.image,
+    role: user.role,
+  };
+
+  if (!user) {
+    return res.status(StatusCodes.BAD_REQUEST).json({ message: 'User not found' });
+  }
+
+  const token = jwt.sign({ email }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_LIFESPAN,
+  });
+
+  return res
+    .cookie('access_token', token, { httpOnly: true })
+    .status(StatusCodes.OK)
+    .json({ userInfo });
+};
